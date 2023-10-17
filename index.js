@@ -12,7 +12,7 @@ const transactionExplanationPath = `${recipe}/explanations/transaction.txt`;
 export const mintingAMomentInTopShotSet = {
   slug: recipe,
   title: "Minting a Moment in TopShot Set",
-  createdAt: Date(2022, 3, 1),
+  createdAt: new Date(2022, 3, 1),
   author: "Flow Blockchain",
   playgroundLink:
     "https://play.onflow.org/15c1e86e-010c-4a7c-bcfd-98a1bddc36a7?type=tx&id=d24e3b31-7576-4e7e-b27e-2ed422406187&storage=none",
