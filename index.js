@@ -23,6 +23,6 @@ export const mintingAMomentInTopShotSet = {
   transactionCode: transactionPath,
   transactionExplanation: transactionExplanationPath,
   filters: {
-    difficulty: "intermediate"
-  }
+    difficulty: "intermediate",
+  },
 };

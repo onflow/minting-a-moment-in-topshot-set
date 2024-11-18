@@ -1,6 +1,7 @@
-//More TopShot Code Above
+// More TopShot Code Above
 
-pub resource Set {
+access(all)
+resource Set {
     // mintMoment mints a new Moment and returns the newly minted Moment
     // 
     // Parameters: playID: The ID of the Play that the Moment references
@@ -10,7 +11,8 @@ pub resource Set {
     //
     // Returns: The NFT that was minted
     // 
-    pub fun mintMoment(playID: UInt32): @NFT {
+    access(all)
+    fun mintMoment(playID: UInt32): @NFT {
         pre {
             self.retired[playID] != nil: "Cannot mint the moment: This play doesn't exist."
             !self.retired[playID]!: "Cannot mint the moment from this play: This play has been retired."
@@ -21,9 +23,11 @@ pub resource Set {
         let numInPlay = self.numberMintedPerPlay[playID]!
 
         // Mint the new moment
-        let newMoment: @NFT <- create NFT(serialNumber: numInPlay + UInt32(1),
-                                          playID: playID,
-                                          setID: self.setID)
+        let newMoment: @NFT <- create NFT(
+            serialNumber: numInPlay + UInt32(1),
+            playID: playID,
+            setID: self.setID
+        )
 
         // Increment the count of Moments minted for this Play
         self.numberMintedPerPlay[playID] = numInPlay + UInt32(1)
@@ -39,7 +43,8 @@ pub resource Set {
     //
     // Returns: Collection object that contains all the Moments that were minted
     //
-    pub fun batchMintMoment(playID: UInt32, quantity: UInt64): @Collection {
+    access(all)
+    fun batchMintMoment(playID: UInt32, quantity: UInt64): @Collection {
         let newCollection <- create Collection()
 
         var i: UInt64 = 0
@@ -54,17 +59,21 @@ pub resource Set {
 }
 ....
 
-pub struct MomentData {
+access(all)
+struct MomentData {
 
     // The ID of the Set that the Moment comes from
-    pub let setID: UInt32
+    access(all)
+    let setID: UInt32
 
     // The ID of the Play that the Moment references
-    pub let playID: UInt32
+    access(all)
+    let playID: UInt32
 
     // The place in the edition that this Moment was minted
     // Otherwise know as the serial number
-    pub let serialNumber: UInt32
+    access(all)
+    let serialNumber: UInt32
 
     init(setID: UInt32, playID: UInt32, serialNumber: UInt32) {
         self.setID = setID
@@ -77,13 +86,16 @@ pub struct MomentData {
 
 // The resource that represents the Moment NFTs
 //
-pub resource NFT: NonFungibleToken.INFT {
+access(all)
+resource NFT: NonFungibleToken.INFT {
 
     // Global unique moment ID
-    pub let id: UInt64
+    access(all)
+    let id: UInt64
     
     // Struct of Moment metadata
-    pub let data: MomentData
+    access(all)
+    let data: MomentData
 
     init(serialNumber: UInt32, playID: UInt32, setID: UInt32) {
         // Increment the global Moment IDs
@@ -94,15 +106,20 @@ pub resource NFT: NonFungibleToken.INFT {
         // Set the metadata struct
         self.data = MomentData(setID: setID, playID: playID, serialNumber: serialNumber)
 
-        emit MomentMinted(momentID: self.id, playID: playID, setID: self.data.setID, serialNumber: self.data.serialNumber)
+        emit MomentMinted(
+            momentID: self.id, 
+            playID: playID, 
+            setID: self.data.setID, 
+            serialNumber: self.data.serialNumber
+        )
     }
 
     // If the Moment is destroyed, emit an event to indicate 
-    // to outside ovbservers that it has been destroyed
+    // to outside observers that it has been destroyed
     destroy() {
         emit MomentDestroyed(id: self.id)
     }
 }
 
 ...
-//More TopShot Code below
+// More TopShot Code Below
