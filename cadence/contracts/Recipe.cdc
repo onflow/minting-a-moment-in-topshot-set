@@ -4,54 +4,117 @@ access(all) contract Recipe {
     // This is a snippet extracting the relevant logic from the TopShot contract for demonstration purposes
     // More TopShot Code Above
 
-    access(all) event PlayAddedToSet(setID: UInt32, playID: UInt32)
-
-    access(all) resource Set {
-
-        // addPlay adds a play to the set
-        //
-        // Parameters: playID: The ID of the Play that is being added
+    access(all)
+    resource Set {
+        // mintMoment mints a new Moment and returns the newly minted Moment
+        // 
+        // Parameters: playID: The ID of the Play that the Moment references
         //
         // Pre-Conditions:
-        // The Play needs to be an existing play
-        // The Set needs to be not locked
-        // The Play can't have already been added to the Set
+        // The Play must exist in the Set and be allowed to mint new Moments
         //
-
-        /// Resource fields
-        access(all) var locked: Bool
-        access(all) let plays: [UInt32]
-        access(all) let retired: {UInt32: Bool}
-        access(all) let numberMintedPerPlay: {UInt32: UInt32}
-        access(all) let setID: UInt32
-
-        // Resource initializer
-        init(setID: UInt32) {
-            self.locked = false
-            self.plays = []
-            self.retired = {}
-            self.numberMintedPerPlay = {}
-            self.setID = setID
-        }
-
-        access(all) fun addPlay(playID: UInt32) {
+        // Returns: The NFT that was minted
+        // 
+        access(all)
+        fun mintMoment(playID: UInt32): @NFT {
             pre {
-                TopShot.getPlayMetaData(playID: playID) != nil: "Cannot add the Play to Set: Play doesn't exist."
-                !self.locked: "Cannot add the play to the Set after the set has been locked."
-                self.numberMintedPerPlay[playID] == nil: "The play has already been added to the set."
+                self.retired[playID] != nil: "Cannot mint the moment: This play doesn't exist."
+                !self.retired[playID]!: "Cannot mint the moment from this play: This play has been retired."
             }
 
-            // Add the Play to the array of Plays
-            self.plays.append(playID)
+            // Gets the number of Moments that have been minted for this Play
+            // to use as this Moment's serial number
+            let numInPlay = self.numberMintedPerPlay[playID]!
 
-            // Open the Play up for minting
-            self.retired[playID] = false
+            // Mint the new moment
+            let newMoment: @NFT <- create NFT(
+                serialNumber: numInPlay + UInt32(1),
+                playID: playID,
+                setID: self.setID
+            )
 
-            // Initialize the Moment count to zero
-            self.numberMintedPerPlay[playID] = 0
+            // Increment the count of Moments minted for this Play
+            self.numberMintedPerPlay[playID] = numInPlay + UInt32(1)
 
-            emit PlayAddedToSet(setID: self.setID, playID: playID)
+            return <-newMoment
+        }
+
+        // batchMintMoment mints an arbitrary quantity of Moments 
+        // and returns them as a Collection
+        //
+        // Parameters: playID: the ID of the Play that the Moments are minted for
+        //             quantity: The quantity of Moments to be minted
+        //
+        // Returns: Collection object that contains all the Moments that were minted
+        //
+        access(all)
+        fun batchMintMoment(playID: UInt32, quantity: UInt64): @Collection {
+            let newCollection <- create Collection()
+
+            var i: UInt64 = 0
+            while i < quantity {
+                newCollection.deposit(token: <-self.mintMoment(playID: playID))
+                i = i + UInt64(1)
+            }
+
+            return <-newCollection
         }
     }
+
+    access(all)
+    struct MomentData {
+
+        // The ID of the Set that the Moment comes from
+        access(all)
+        let setID: UInt32
+
+        // The ID of the Play that the Moment references
+        access(all)
+        let playID: UInt32
+
+        // The place in the edition that this Moment was minted
+        // Otherwise know as the serial number
+        access(all)
+        let serialNumber: UInt32
+
+        init(setID: UInt32, playID: UInt32, serialNumber: UInt32) {
+            self.setID = setID
+            self.playID = playID
+            self.serialNumber = serialNumber
+        }
+    }
+
+    // The resource that represents the Moment NFTs
+    //
+    access(all)
+    resource NFT: NonFungibleToken.INFT {
+
+        // Global unique moment ID
+        access(all)
+        let id: UInt64
+        
+        // Struct of Moment metadata
+        access(all)
+        let data: MomentData
+
+        init(serialNumber: UInt32, playID: UInt32, setID: UInt32) {
+            // Increment the global Moment IDs
+            TopShot.totalSupply = TopShot.totalSupply + UInt64(1)
+
+            self.id = TopShot.totalSupply
+
+            // Set the metadata struct
+            self.data = MomentData(setID: setID, playID: playID, serialNumber: serialNumber)
+
+            emit MomentMinted(
+                momentID: self.id, 
+                playID: playID, 
+                setID: self.data.setID, 
+                serialNumber: self.data.serialNumber
+            )
+        }
+
+    }
+
     // More TopShot Code Below
 }
