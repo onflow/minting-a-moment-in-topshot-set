@@ -1,32 +1,31 @@
 import "TopShot"
 
 transaction {
-    
-    let admin: auth(AdminEntitlement) &TopShot.Admin
+    let admin: &TopShot.Admin
     let borrowedSet: &TopShot.Set
+    let receiverRef: &{TopShot.MomentCollectionPublic}
 
-    prepare(acct: auth(Storage, Capabilities) &Account) {
-        // Borrow the admin resource
-        self.admin = acct.capabilities.storage.borrow<&TopShot.Admin>(
-            from: /storage/TopShotAdmin
-        ) ?? panic("Can't borrow admin resource")
+    prepare(acct: AuthAccount) {
+        // Borrow the admin resource from the account's storage
+        self.admin = acct.borrow<&TopShot.Admin>(from: /storage/TopShotAdmin)
+            ?? panic("Cannot borrow admin resource from storage")
 
-        // Borrow the Set resource
+        // Borrow the Set resource using the admin's borrowSet function
         self.borrowedSet = self.admin.borrowSet(setID: 1)
 
-        // Borrow the recipient's MomentCollectionPublic capability
-        let receiverRef = acct.capabilities.borrow<&{TopShot.MomentCollectionPublic}>(
-            /public/MomentCollection
-        ) ?? panic("Can't borrow collection reference")
-
-        // Mint moments and return them as a collection
-        let collection <- self.borrowedSet.batchMintMoment(playID: 3, quantity: 3)
-
-        // Deposit the minted moments into the recipient's collection
-        receiverRef.batchDeposit(tokens: <-collection)
+        // Borrow the recipient's MomentCollectionPublic reference
+        self.receiverRef = acct.getCapability<&{TopShot.MomentCollectionPublic}>(/public/MomentCollection)
+            .borrow()
+            ?? panic("Cannot borrow the MomentCollection reference")
     }
 
     execute {
-        log("Plays minted")
+        // Mint moments using the borrowed set
+        let mintedMoments <- self.borrowedSet.batchMintMoment(playID: 3, quantity: 3)
+
+        // Deposit the minted moments into the recipient's collection
+        self.receiverRef.batchDeposit(tokens: <-mintedMoments)
+
+        log("Minted and deposited moments into the recipient's collection.")
     }
 }
