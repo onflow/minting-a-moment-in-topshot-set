@@ -1,9 +1,5 @@
-To mint a moment you will need to borrow a reference to the admin resource from the Auth Account.
+To mint a Moment in the TopShot system, you start by borrowing a reference to the Admin resource from the authorized account. This reference grants access to administrative functions, including minting Moments and managing sets. Next, you use the borrowSet function on the Admin reference to access the specific Set resource by its setID. The Set resource contains the functionality needed to mint Moments associated with a particular play.
 
-Once you do, you will need to borrow the set that you would like access to by calling the borrowSet function. This gets whatever setID is created that you want to have access to.
+To store the minted Moments in the recipient's account, you need a capability reference to the recipient's collection, which can accept the NFTs. Using this reference, you can deposit the Moments into their collection. In this scenario, the batchMintMoment function is used to mint multiple Moments at once.
 
-You will also need to have the capability to receive the NFT or NFTS for the receiving account referenced.
-
-In this case we use the batchMintMoment to return a collection of minted NFTS that we can store it into the receivers collection.
-
-Then we specify what playID we would like to mint and how many moments will be minted. After that we deposit the collection that is returned into the receivers account.
+The transaction specifies the playID for the Moments being minted and the desired quantity. After minting, the resulting collection of Moments is deposited directly into the recipient's collection.
