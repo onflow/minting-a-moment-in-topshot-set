@@ -37,7 +37,6 @@ recipe-name/
 ├── cadence/                          # Cadence files for recipe examples
 │   ├── contracts/Recipe.cdc          # Contract code
 │   ├── transactions/mint_moment.cdc   # Transaction code
-│   ├── tests/Recipe_test.cdc           # Tests code
 ├── explanations/           # Explanation files for recipe examples
 │   ├── contract.txt        # Contract code explanation
 │   ├── transaction.txt     # Transaction code explanation
