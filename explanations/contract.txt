@@ -1,11 +1,5 @@
-You would find the function the mint a moment in your Set resource. To mint a moment you would call on this function and input the playID you would like to mint.
+The Set resource in the contract is central to minting Moments, which are represented as NFT resources. To mint a Moment, you use the mintMoment function in the Set resource, providing the playID of the play you want to mint. When a play is added to a set, the number of Moments minted for that play is initialized to zero. The mintMoment function first checks preconditions to ensure that the specified play exists in the set and has not been retired. If these conditions are met, the function retrieves the current count of minted Moments for the play, increments it, and uses it as the serial number for the new Moment. A new Moment NFT is then created with the provided parameters, and the count of minted Moments for the play is updated.
 
-Remember when we added our play to the set we intialized the moments as 0 so when you mint a moment it will add 1 to that minted moment per play. Before we mint however, we check to see if the play exists in the set or if the play is retired.
+The minted Moment is returned as an NFT resource, ready to be stored in a recipient's collection. For cases where a large number of Moments need to be minted efficiently, the batchMintMoment function allows multiple Moments to be minted at once. This function creates a temporary collection resource, mints the specified number of Moments, and deposits them into the collection. Once all the Moments are minted, the collection is returned, enabling batch deposits into the recipient's account.
 
-If not, we then get the number of moments minted for this play and store that number variable in numInPlay. We would then mint a new Moment as an NFT resource type. We would send in all the parameters specified for the NFT and once we mint that new Moment we then increase the number of moments minted for this play by one.
-
-We then return the moment with is of an NFT resource type, to later be stored in a collection in a receivers account.
-
-We could also batch mint these moments. This would save a lot of time if you wanted to mint 60,000 moments. When doing this, you would have to create a collection resource that would deposit all of the minted NFTS into it.
-
-Once that happens you would return the collection resource and then deposit that into the receivers collection.
+The Moments themselves are structured to include metadata such as their unique ID, the play and set they reference, and their serial number. These NFTs can be deposited into a Collection resource, which manages ownership of Moments and facilitates operations like withdrawal, deposit, and locking. Batch operations are supported for both withdrawal and deposit, streamlining the handling of multiple Moments. 
